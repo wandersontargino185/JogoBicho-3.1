@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Estatística Jogo do Bicho v3</title>
+<title>Estatística Jogo do Bicho v3.2</title>
 <style>
   body { font-family: -apple-system, sans-serif; padding: 16px; max-width: 500px; margin: auto; background:#f7f7f7; }
   input, button, textarea { font-size: 16px; padding: 12px; margin: 6px 0; width: 100%; box-sizing: border-box; border-radius: 8px; border: 1px solid #ccc; }
@@ -11,6 +11,8 @@
  .btn-red { background:#dc3545; }
  .btn-blue { background:#007bff; }
  .btn-gray { background:#6c757d; }
+ .btn-orange { background:#fd7e14; }
+ .btn-purple { background:#6f42c1; }
   textarea { height: 80px; font-family: monospace; }
   table { width: 100%; margin-top: 12px; border-collapse: collapse; background: white; }
   td, th { border: 1px solid #ddd; padding: 8px; text-align: center; font-size: 14px; }
@@ -21,12 +23,22 @@
  .hidden { display: none; }
   details { margin: 10px 0; }
   summary { font-weight: bold; padding: 10px; background: #e9ecef; border-radius: 8px; cursor: pointer; }
+ .row { display: flex; gap: 6px; }
+ .row button { flex: 1; }
 </style>
 </head>
 <body>
-<h2>Análise Bicho v3.0 - 4 Dígitos</h2>
+<h2>Análise Bicho v3.2 - 4 Dígitos</h2>
 <input type="number" id="numero" placeholder="Resultado ex: 1234 + Enter" min="0" max="9999"/>
 <button onclick="add()">Adicionar Resultado</button>
+<button onclick="desfazer()" id="btnDesfazer" class="btn-orange hidden">Desfazer Último</button>
+
+<div class="row">
+  <button onclick="salvarArquivo()" class="btn-purple">Salvar Arquivo</button>
+  <button onclick="document.getElementById('abrirArq').click()" class="btn-blue">Abrir Arquivo</button>
+</div>
+<input type="file" id="abrirArq" accept=".txt,.json" class="hidden" onchange="abrirArquivo(event)">
+
 <button onclick="limpar()" class="btn-red">Zerar Tudo</button>
 
 <details>
@@ -35,7 +47,7 @@
 <button onclick="importarTXT()" class="btn-blue">Importar Lista</button>
 </details>
 
-<button onclick="exportar()" class="btn-gray">Exportar.txt</button>
+<button onclick="exportar()" class="btn-gray">Exportar.txt Rápido</button>
 
 <div id="resumo"></div>
 <div id="stats"></div>
@@ -84,9 +96,11 @@ function getAtraso(pos, alg) {
 }
 
 function atualizar() {
+  document.getElementById('btnDesfazer').classList.toggle('hidden', dados.length === 0);
+
   let contagem = [{},{},{},{}];
   let contagemBicho = {};
-  let contagemMilhar = {}; // NOVO: conta milhares completas
+  let contagemMilhar = {};
 
   dados.forEach(n => {
     let num = n.toString().padStart(4,'0');
@@ -95,13 +109,13 @@ function atualizar() {
     }
     let dezena = num.slice(2);
     contagemBicho[bichos[dezena]] = (contagemBicho[bichos[dezena]]||0)+1;
-    contagemMilhar[num] = (contagemMilhar[num]||0)+1; // NOVO
+    contagemMilhar[num] = (contagemMilhar[num]||0)+1;
   });
 
-  // Resumo
   let htmlResumo = `<div class="resumo"><b>Total:</b> ${dados.length} resultados<br>`;
   if(dados.length > 0) {
-    htmlResumo += `<b>Último:</b> ${dados[dados.length-1].toString().padStart(4,'0')} - ${bichos[dados[dados.length-1].toString().padStart(4,'0').slice(2)]}<br>`;
+    let ultimo = dados[dados.length-1].toString().padStart(4,'0');
+    htmlResumo += `<b>Último:</b> ${ultimo} - ${bichos[ultimo.slice(2)]}<br>`;
     ['Unidade','Dezena'].forEach((nome, idx) => {
       let pos = 3-idx;
       let arr = Object.entries(contagem[pos]).sort((a,b)=>b[1]-a[1]);
@@ -116,8 +130,6 @@ function atualizar() {
   document.getElementById('resumo').innerHTML = htmlResumo;
 
   let html = '';
-
-  // NOVO: Tabela de Milhares Repetidas
   let arrMilhar = Object.entries(contagemMilhar).filter(e => e[1] > 1).sort((a,b)=>b[1]-a[1]);
   if(arrMilhar.length > 0) {
     html += `<h3>Milhar Completa Repetida</h3><table><tr><th>Milhar</th><th>Bicho</th><th>Vezes</th></tr>`;
@@ -127,7 +139,6 @@ function atualizar() {
     html += `</table>`;
   }
 
-  // Tabelas por posição
   for(let pos=0; pos<4; pos++){
     html += `<h3>${nomes[pos]}</h3><table><tr><th>Algarismo</th><th>Qtd</th><th>%</th><th>Atraso</th></tr>`;
     let arr = Object.entries(contagem[pos]).sort((a,b)=>b[1]-a[1]);
@@ -142,7 +153,6 @@ function atualizar() {
     html += `</table>`;
   }
 
-  // Tabela de bichos
   html += `<h3>Grupos / Bichos</h3><table><tr><th>Bicho</th><th>Qtd</th><th>%</th></tr>`;
   let arrBicho = Object.entries(contagemBicho).sort((a,b)=>b[1]-a[1]);
   arrBicho.forEach(([bicho, q]) => {
@@ -167,7 +177,14 @@ function add() {
   } else alert('Digite entre 0000 e 9999');
 }
 
-// NOVO: Importar TXT
+function desfazer() {
+  if(dados.length > 0) {
+    let removido = dados.pop();
+    atualizar();
+    alert(`Removido: ${removido.toString().padStart(4,'0')}`);
+  }
+}
+
 function importarTXT() {
   let txt = document.getElementById('txtImport').value;
   let linhas = txt.split('\n');
@@ -198,6 +215,40 @@ function exportar() {
   let url = URL.createObjectURL(blob);
   let a = document.createElement('a');
   a.href = url; a.download = 'resultados_bicho.txt'; a.click();
+}
+
+// NOVO: Salvar arquivo com nome e data
+function salvarArquivo() {
+  let data = new Date().toISOString().slice(0,10);
+  let txt = dados.join('\n');
+  let blob = new Blob([txt], {type: 'text/plain'});
+  let url = URL.createObjectURL(blob);
+  let a = document.createElement('a');
+  a.href = url;
+  a.download = `bicho_${data}_${dados.length}resultados.txt`;
+  a.click();
+}
+
+// NOVO: Abrir arquivo.txt
+function abrirArquivo(event) {
+  let file = event.target.files[0];
+  if (!file) return;
+  let reader = new FileReader();
+  reader.onload = function(e) {
+    let txt = e.target.result;
+    let linhas = txt.split('\n');
+    let novos = [];
+    linhas.forEach(linha => {
+      let n = parseInt(linha.trim());
+      if(!isNaN(n) && n >= 0 && n <= 9999) novos.push(n);
+    });
+    if(novos.length > 0 && confirm(`Carregar ${novos.length} resultados do arquivo? Isso vai substituir os atuais.`)) {
+      dados = novos;
+      atualizar();
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
 }
 
 atualizar();
