@@ -3,32 +3,32 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Estatística Jogo do Bicho v3.3</title>
+<title>Estatística Jogo do Bicho v3.4</title>
 <style>
   body { font-family: -apple-system, sans-serif; padding: 16px; max-width: 500px; margin: auto; background:#f7f7f7; }
   input, button, textarea { font-size: 16px; padding: 12px; margin: 6px 0; width: 100%; box-sizing: border-box; border-radius: 8px; border: 1px solid #ccc; }
   button { background: #25D366; color: white; border: none; font-weight: bold; cursor: pointer; }
- .btn-red { background:#dc3545; }
- .btn-blue { background:#007bff; }
- .btn-gray { background:#6c757d; }
- .btn-orange { background:#fd7e14; }
- .btn-purple { background:#6f42c1; }
+.btn-red { background:#dc3545; }
+.btn-blue { background:#007bff; }
+.btn-gray { background:#6c757d; }
+.btn-orange { background:#fd7e14; }
+.btn-purple { background:#6f42c1; }
   textarea { height: 80px; font-family: monospace; }
   table { width: 100%; margin-top: 12px; border-collapse: collapse; background: white; }
   td, th { border: 1px solid #ddd; padding: 8px; text-align: center; font-size: 14px; }
- .top { background: #c8e6c9; font-weight: bold; }
- .low { background: #ffcdd2; }
- .resumo { background: #fff3cd; padding: 12px; border-radius: 8px; margin: 12px 0; }
+.top { background: #c8e6c9; font-weight: bold; }
+.low { background: #ffcdd2; }
+.resumo { background: #fff3cd; padding: 12px; border-radius: 8px; margin: 12px 0; }
   h3 { margin: 16px 0 4px 0; }
- .hidden { display: none; }
+.hidden { display: none; }
   details { margin: 10px 0; }
   summary { font-weight: bold; padding: 10px; background: #e9ecef; border-radius: 8px; cursor: pointer; }
- .row { display: flex; gap: 6px; }
- .row button { flex: 1; }
+.row { display: flex; gap: 6px; }
+.row button { flex: 1; }
 </style>
 </head>
 <body>
-<h2>Análise Bicho v3.3 - 4 Dígitos</h2>
+<h2>Análise Bicho v3.4 - 4 Dígitos</h2>
 <input type="number" id="numero" placeholder="Resultado ex: 1234 + Enter" min="0" max="9999"/>
 <button onclick="add()">Adicionar Resultado</button>
 <button onclick="desfazer()" id="btnDesfazer" class="btn-orange hidden">Desfazer Último</button>
@@ -43,4 +43,218 @@
 
 <details>
 <summary>📥 Importar vários resultados de TXT</summary>
-<textarea id="txtImport
+<textarea id="txtImport" placeholder="Cole aqui, um por linha:&#10;1234&#10;5678&#10;1234"></textarea>
+<button onclick="importarTXT()" class="btn-blue">Importar Lista</button>
+</details>
+
+<button onclick="exportar()" class="btn-gray">Exportar.txt Rápido</button>
+
+<div id="resumo"></div>
+<div id="stats"></div>
+<div id="rodape"></div>
+
+<script>
+let dados = JSON.parse(localStorage.getItem('bicho3') || '[]');
+const nomes = {0:'Milhar', 1:'Centena', 2:'Dezena', 3:'Unidade'};
+const bichos = {
+  '01':'Avestruz','02':'Avestruz','03':'Avestruz','04':'Avestruz',
+  '05':'Águia','06':'Águia','07':'Águia','08':'Águia',
+  '09':'Burro','10':'Burro','11':'Burro','12':'Burro',
+  '13':'Borboleta','14':'Borboleta','15':'Borboleta','16':'Borboleta',
+  '17':'Cachorro','18':'Cachorro','19':'Cachorro','20':'Cachorro',
+  '21':'Cabra','22':'Cabra','23':'Cabra','24':'Cabra',
+  '25':'Carneiro','26':'Carneiro','27':'Carneiro','28':'Carneiro',
+  '29':'Camelo','30':'Camelo','31':'Camelo','32':'Camelo',
+  '33':'Cobra','34':'Cobra','35':'Cobra','36':'Cobra',
+  '37':'Coelho','38':'Coelho','39':'Coelho','40':'Coelho',
+  '41':'Cavalo','42':'Cavalo','43':'Cavalo','44':'Cavalo',
+  '45':'Elefante','46':'Elefante','47':'Elefante','48':'Elefante',
+  '49':'Galo','50':'Galo','51':'Galo','52':'Galo',
+  '53':'Gato','54':'Gato','55':'Gato','56':'Gato',
+  '57':'Jacaré','58':'Jacaré','59':'Jacaré','60':'Jacaré',
+  '61':'Leão','62':'Leão','63':'Leão','64':'Leão',
+  '65':'Macaco','66':'Macaco','67':'Macaco','68':'Macaco',
+  '69':'Porco','70':'Porco','71':'Porco','72':'Porco',
+  '73':'Pavão','74':'Pavão','75':'Pavão','76':'Pavão',
+  '77':'Peru','78':'Peru','79':'Peru','80':'Peru',
+  '81':'Touro','82':'Touro','83':'Touro','84':'Touro',
+  '85':'Tigre','86':'Tigre','87':'Tigre','88':'Tigre',
+  '89':'Urso','90':'Urso','91':'Urso','92':'Urso',
+  '93':'Veado','94':'Veado','95':'Veado','96':'Veado',
+  '97':'Vaca','98':'Vaca','99':'Vaca','00':'Vaca'
+};
+
+document.getElementById('numero').addEventListener('keypress', function(e) {
+  if (e.key === 'Enter') { e.preventDefault(); add(); }
+});
+
+function getAtraso(pos, alg) {
+  for(let i = dados.length - 1; i >= 0; i--) {
+    let num = dados[i].toString().padStart(4,'0');
+    if(num[pos] == alg) return dados.length - 1 - i;
+  }
+  return dados.length;
+}
+
+function atualizar() {
+  document.getElementById('btnDesfazer').classList.toggle('hidden', dados.length === 0);
+
+  let contagem = [{},{},{},{}];
+  let contagemBicho = {};
+  let contagemMilhar = {};
+
+  dados.forEach(n => {
+    let num = n.toString().padStart(4,'0');
+    for(let i=0;i<4;i++){
+      contagem[i][num[i]] = (contagem[i][num[i]]||0)+1;
+    }
+    let dezena = num.slice(2);
+    contagemBicho[bichos[dezena]] = (contagemBicho[bichos[dezena]]||0)+1;
+    contagemMilhar[num] = (contagemMilhar[num]||0)+1;
+  });
+
+  let htmlResumo = `<div class="resumo"><b>Total:</b> ${dados.length} resultados<br>`;
+  if(dados.length > 0) {
+    let ultimo = dados[dados.length-1].toString().padStart(4,'0');
+    htmlResumo += `<b>Último:</b> ${ultimo} - ${bichos[ultimo.slice(2)]}<br>`;
+    ['Unidade','Dezena'].forEach((nome, idx) => {
+      let pos = 3-idx;
+      let arr = Object.entries(contagem[pos]).sort((a,b)=>b[1]-a[1]);
+      if(arr.length){
+        let top3 = arr.slice(0,3).map(e=>e[0]).join(', ');
+        let low3 = arr.slice(-3).map(e=>e[0]).join(', ');
+        htmlResumo += `<b>${nome}:</b> Quentes: ${top3} | Frios: ${low3}<br>`;
+      }
+    });
+  }
+  htmlResumo += `</div>`;
+  document.getElementById('resumo').innerHTML = htmlResumo;
+
+  let html = '';
+  for(let pos=0; pos<4; pos++){
+    html += `<h3>${nomes[pos]}</h3><table><tr><th>Algarismo</th><th>Qtd</th><th>%</th><th>Atraso</th></tr>`;
+    let arr = Object.entries(contagem[pos]).sort((a,b)=>b[1]-a[1]);
+    let max = arr[0]?.[1]||0, min = arr[arr.length-1]?.[1]||0;
+    for(let i=0;i<=9;i++){
+      let q = contagem[pos][i] || 0;
+      let pct = dados.length? (q/dados.length*100).toFixed(1) : 0;
+      let atraso = getAtraso(pos, i);
+      let cls = q===max && q>0? 'top' : q===min && q>0? 'low' : '';
+      html += `<tr class="${cls}"><td>${i}</td><td>${q}</td><td>${pct}%</td><td>${atraso}</td></tr>`;
+    }
+    html += `</table>`;
+  }
+
+  html += `<h3>Grupos / Bichos</h3><table><tr><th>Bicho</th><th>Qtd</th><th>%</th></tr>`;
+  let arrBicho = Object.entries(contagemBicho).sort((a,b)=>b[1]-a[1]);
+  arrBicho.forEach(([bicho, q]) => {
+    let pct = (q/dados.length*100).toFixed(1);
+    html += `<tr><td>${bicho}</td><td>${q}</td><td>${pct}%</td></tr>`;
+  });
+  html += `</table>`;
+  document.getElementById('stats').innerHTML = html;
+
+  // RODAPÉ: Milhar Completa Repetida recolhível
+  let htmlRodape = '';
+  let arrMilhar = Object.entries(contagemMilhar).filter(e => e[1] > 1).sort((a,b)=>b[1]-a[1]);
+  if(arrMilhar.length > 0) {
+    htmlRodape += `<details><summary>🔁 Milhar Completa Repetida - ${arrMilhar.length} únicas</summary>`;
+    htmlRodape += `<table><tr><th>Milhar</th><th>Bicho</th><th>Vezes</th></tr>`;
+    arrMilhar.forEach(([milhar, q]) => {
+      htmlRodape += `<tr class="top"><td>${milhar}</td><td>${bichos[milhar.slice(2)]}</td><td>${q}</td></tr>`;
+    });
+    htmlRodape += `</table></details>`;
+  }
+  document.getElementById('rodape').innerHTML = htmlRodape;
+
+  localStorage.setItem('bicho3', JSON.stringify(dados));
+}
+
+function add() {
+  let n = document.getElementById('numero').value;
+  if(n === '') return;
+  n = parseInt(n);
+  if(n >= 0 && n <= 9999) {
+    dados.push(n);
+    document.getElementById('numero').value='';
+    atualizar();
+    document.getElementById('numero').focus();
+  } else alert('Digite entre 0000 e 9999');
+}
+
+function desfazer() {
+  if(dados.length > 0) {
+    let removido = dados.pop();
+    atualizar();
+    alert(`Removido: ${removido.toString().padStart(4,'0')}`);
+  }
+}
+
+function importarTXT() {
+  let txt = document.getElementById('txtImport').value;
+  let linhas = txt.split('\n');
+  let adicionados = 0;
+  linhas.forEach(linha => {
+    let n = parseInt(linha.trim());
+    if(!isNaN(n) && n >= 0 && n <= 9999) {
+      dados.push(n);
+      adicionados++;
+    }
+  });
+  if(adicionados > 0) {
+    alert(`${adicionados} resultados importados!`);
+    document.getElementById('txtImport').value = '';
+    atualizar();
+  } else {
+    alert('Nenhum número válido encontrado. Use um por linha, ex: 1234');
+  }
+}
+
+function limpar() {
+  if(confirm('Apagar todos os resultados?')) { dados = []; atualizar(); }
+}
+
+function exportar() {
+  let txt = dados.join('\n');
+  let blob = new Blob([txt], {type: 'text/plain'});
+  let url = URL.createObjectURL(blob);
+  let a = document.createElement('a');
+  a.href = url; a.download = 'resultados_bicho.txt'; a.click();
+}
+
+function salvarArquivo() {
+  let data = new Date().toISOString().slice(0,10);
+  let txt = dados.join('\n');
+  let blob = new Blob([txt], {type: 'text/plain'});
+  let url = URL.createObjectURL(blob);
+  let a = document.createElement('a');
+  a.href = url;
+  a.download = `bicho_${data}_${dados.length}resultados.txt`;
+  a.click();
+}
+
+function abrirArquivo(event) {
+  let file = event.target.files[0];
+  if (!file) return;
+  let reader = new FileReader();
+  reader.onload = function(e) {
+    let txt = e.target.result;
+    let linhas = txt.split('\n');
+    let novos = [];
+    linhas.forEach(linha => {
+      let n = parseInt(linha.trim());
+      if(!isNaN(n) && n >= 0 && n <= 9999) novos.push(n);
+    });
+    if(novos.length > 0 && confirm(`Carregar ${novos.length} resultados do arquivo? Isso vai substituir os atuais.`)) {
+      dados = novos;
+      atualizar();
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+atualizar();
+</script>
+</body>
+</html>
