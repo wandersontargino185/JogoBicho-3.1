@@ -251,6 +251,162 @@ summary:hover {
 </head>
 
 <body>
+  <!-- Botão fixo no canto superior direito -->
+<button id="btnAjuda" class="btn-ajuda">?</button>
+
+<!-- Modal da explicação -->
+<div id="modalAjuda" class="modal hidden">
+  <div class="modal-content">
+    <span class="fechar" id="fecharAjuda">&times;</span>
+    <h2>Como funciona o site</h2>
+    
+    <h3>1. Cadastro de resultados</h3>
+    <p>Digite um número de 0000 a 9999 e clique em "Adicionar". Os dados ficam salvos no seu navegador.</p>
+
+    <h3>2. Estatísticas por posição</h3>
+    <p>O site separa o número em Milhar, Centena, Dezena e Unidade. Para cada posição mostra:</p>
+    <ul>
+      <li>Quantas vezes cada dígito 0-9 saiu</li>
+      <li>Porcentagem em relação ao total</li>
+      <li>Atraso: há quantos sorteios esse dígito não sai</li>
+    </ul>
+    <p>Números que mais saíram ficam verdes. Os que menos saíram ficam vermelhos.</p>
+
+    <h3>3. Análise dos bichos</h3>
+    <p>Pega a dezena final 00-99 e converte pro bicho correspondente. Mostra quantas vezes cada bicho saiu.</p>
+
+    <h3>4. Resumo rápido</h3>
+    <p>Mostra total de resultados, último número, último bicho, e os 3 dígitos quentes e frios da dezena/unidade.</p>
+
+    <h3>5. Milhar repetida</h3>
+    <p>Lista todas as milhares de 4 dígitos que saíram mais de 1 vez.</p>
+
+    <h3>6. Importar/Exportar</h3>
+    <ul>
+      <li><b>Importar:</b> Cola uma lista de números e adiciona tudo de uma vez</li>
+      <li><b>Exportar:</b> Gera um .txt com todos os números</li>
+      <li><b>Zerar tudo:</b> Apaga todos os dados</li>
+      <li><b>Desfazer:</b> Remove o último número cadastrado</li>
+    </ul>
+
+    <p class="obs">Obs: Tudo fica salvo localmente no navegador. Limpar o cache apaga os dados.</p>
+  </div>
+</div>
+
+<style>
+/* Botão flutuante */
+.btn-ajuda {
+  position: fixed;
+  top: 15px;
+  right: 15px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--purple);
+  color: #fff;
+  font-size: 20px;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+  z-index: 1000;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  transition: 0.2s;
+}
+.btn-ajuda:hover {
+  transform: scale(1.1);
+  opacity: 0.9;
+}
+
+/* Modal */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  padding: 20px;
+}
+
+.modal.hidden {
+  display: none;
+}
+
+.modal-content {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  max-width: 600px;
+  max-height: 85vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+.modal-content h2 {
+  margin-bottom: 15px;
+  color: var(--purple);
+}
+
+.modal-content h3 {
+  margin-top: 15px;
+  margin-bottom: 8px;
+  font-size: 1rem;
+  color: var(--text);
+}
+
+.modal-content p, .modal-content li {
+  color: var(--muted);
+  line-height: 1.6;
+  font-size: 0.9rem;
+}
+
+.modal-content ul {
+  margin-left: 20px;
+  margin-bottom: 10px;
+}
+
+.fechar {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 28px;
+  font-weight: bold;
+  color: var(--muted);
+  cursor: pointer;
+}
+.fechar:hover {
+  color: var(--red);
+}
+
+.obs {
+  margin-top: 15px;
+  font-style: italic;
+  font-size: 0.85rem;
+  color: var(--yellow);
+}
+</style>
+
+<script>
+// Abrir e fechar modal
+const btnAjuda = document.getElementById('btnAjuda');
+const modalAjuda = document.getElementById('modalAjuda');
+const fecharAjuda = document.getElementById('fecharAjuda');
+
+btnAjuda.onclick = () => modalAjuda.classList.remove('hidden');
+fecharAjuda.onclick = () => modalAjuda.classList.add('hidden');
+
+// Fechar clicando fora do modal
+window.onclick = (e) => {
+  if (e.target === modalAjuda) {
+    modalAjuda.classList.add('hidden');
+  }
+}
+</script>
 <div class="container">
 
 <div class="header">
@@ -260,7 +416,12 @@ summary:hover {
 </div>
 
 <div class="card">
-
+<details style="margin-top:16px;">
+  <summary>🔍 Pesquisar Milhar</summary>
+  <input type="number" id="buscaMilhar" placeholder="Digite a milhar 0000-9999" inputmode="numeric">
+  <button onclick="pesquisarMilhar()" class="btn-blue">Buscar</button>
+  <div id="resultadoBusca"></div>
+</details>
 <input type="number" id="numero" placeholder="Resultado ex: 1234" min="0" max="9999"/>
 
 <button onclick="add()" class="btn-green">
@@ -683,7 +844,51 @@ function abrirArquivo(event) {
 
   event.target.value = '';
 }
+function pesquisarMilhar() {
+  let busca = document.getElementById('buscaMilhar').value;
+  if(busca === '') return;
+  
+  busca = busca.toString().padStart(4,'0');
+  let qtd = 0;
+  let ultPos = -1;
 
+  dados.forEach((n, i) => {
+    let s = n.toString().padStart(4,'0');
+    if(s === busca) {
+      qtd++;
+      ultPos = i;
+    }
+  });
+
+  let html = '';
+  if(qtd > 0) {
+    let atraso = dados.length - 1 - ultPos;
+    html = `
+      <div class="resumo" style="margin-top:10px;">
+        <div class="item">
+          <h4>Milhar</h4>
+          <p>${busca}</p>
+        </div>
+        <div class="item">
+          <h4>Apareceu</h4>
+          <p>${qtd}x</p>
+        </div>
+        <div class="item">
+          <h4>Atraso</h4>
+          <p>${atraso}</p>
+        </div>
+        <div class="item">
+          <h4>Bicho</h4>
+          <p>${bichos[busca.slice(2)]}</p>
+        </div>
+      </div>
+    `;
+  } else {
+    html = `<p style="margin-top:10px; color: var(--muted);">Milhar ${busca} não foi encontrada nos dados salvos.</p>`;
+  }
+
+  document.getElementById('resultadoBusca').innerHTML = html;
+}
 atualizar();
 </script>
 
