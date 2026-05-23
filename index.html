@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Estatística Jogo do Bicho v4.0</title>
+<title>Estatística Jogo do Bicho v4.3 - Palpites Quentes & Frios</title>
 
 <style>
 :root {
@@ -149,6 +149,10 @@ button:active {
   background: linear-gradient(135deg, #8b5cf6, #7c3aed);
 }
 
+.btn-pink {
+  background: linear-gradient(135deg, #ec4899, #db2777);
+}
+
 .row {
   display: flex;
   gap: 10px;
@@ -166,6 +170,46 @@ button:active {
   line-height: 1.9;
   font-size: 14px;
   margin-bottom: 16px;
+}
+
+.palpite-box {
+  background: linear-gradient(135deg, rgba(139,92,246,.15), rgba(236,72,153,.1));
+  border-left: 4px solid var(--purple);
+  padding: 16px;
+  border-radius: 20px;
+  margin-bottom: 20px;
+}
+
+.palpite-box.frios {
+  border-left: 4px solid #3b82f6;
+  background: linear-gradient(135deg, rgba(59,130,246,.15), rgba(34,197,94,.1));
+}
+
+.palpite-item {
+  background: rgba(255,255,255,0.05);
+  border-radius: 16px;
+  padding: 12px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.palpite-numero {
+  font-family: monospace;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  background: rgba(0,0,0,0.3);
+  padding: 4px 12px;
+  border-radius: 40px;
+}
+
+.palpite-just {
+  font-size: 12px;
+  color: var(--muted);
 }
 
 h3 {
@@ -234,66 +278,6 @@ summary:hover {
   font-size: 12px;
 }
 
-@media (max-width: 600px) {
-  body {
-    padding: 14px;
-  }
-
-  .header h2 {
-    font-size: 24px;
-  }
-
-  .row {
-    flex-direction: column;
-  }
-}
-</style>
-</head>
-
-<body>
-  <!-- Botão fixo no canto superior direito -->
-<button id="btnAjuda" class="btn-ajuda">?</button>
-
-<!-- Modal da explicação -->
-<div id="modalAjuda" class="modal hidden">
-  <div class="modal-content">
-    <span class="fechar" id="fecharAjuda">&times;</span>
-    <h2>Como funciona o site</h2>
-    
-    <h3>1. Cadastro de resultados</h3>
-    <p>Digite um número de 0000 a 9999 e clique em "Adicionar". Os dados ficam salvos no seu navegador.</p>
-
-    <h3>2. Estatísticas por posição</h3>
-    <p>O site separa o número em Milhar, Centena, Dezena e Unidade. Para cada posição mostra:</p>
-    <ul>
-      <li>Quantas vezes cada dígito 0-9 saiu</li>
-      <li>Porcentagem em relação ao total</li>
-      <li>Atraso: há quantos sorteios esse dígito não sai</li>
-    </ul>
-    <p>Números que mais saíram ficam verdes. Os que menos saíram ficam vermelhos.</p>
-
-    <h3>3. Análise dos bichos</h3>
-    <p>Pega a dezena final 00-99 e converte pro bicho correspondente. Mostra quantas vezes cada bicho saiu.</p>
-
-    <h3>4. Resumo rápido</h3>
-    <p>Mostra total de resultados, último número, último bicho, e os 3 dígitos quentes e frios da dezena/unidade.</p>
-
-    <h3>5. Milhar repetida</h3>
-    <p>Lista todas as milhares de 4 dígitos que saíram mais de 1 vez.</p>
-
-    <h3>6. Importar/Exportar</h3>
-    <ul>
-      <li><b>Importar:</b> Cola uma lista de números e adiciona tudo de uma vez</li>
-      <li><b>Exportar:</b> Gera um .txt com todos os números</li>
-      <li><b>Zerar tudo:</b> Apaga todos os dados</li>
-      <li><b>Desfazer:</b> Remove o último número cadastrado</li>
-    </ul>
-
-    <p class="obs">Obs: Tudo fica salvo localmente no navegador. Limpar o cache apaga os dados.</p>
-  </div>
-</div>
-
-<style>
 /* Botão flutuante */
 .btn-ajuda {
   position: fixed;
@@ -387,42 +371,82 @@ summary:hover {
   margin-top: 15px;
   font-style: italic;
   font-size: 0.85rem;
-  color: var(--yellow);
+  color: #fbbf24;
 }
-</style>
 
-<script>
-// Abrir e fechar modal
-const btnAjuda = document.getElementById('btnAjuda');
-const modalAjuda = document.getElementById('modalAjuda');
-const fecharAjuda = document.getElementById('fecharAjuda');
+@media (max-width: 600px) {
+  body {
+    padding: 14px;
+  }
 
-btnAjuda.onclick = () => modalAjuda.classList.remove('hidden');
-fecharAjuda.onclick = () => modalAjuda.classList.add('hidden');
+  .header h2 {
+    font-size: 24px;
+  }
 
-// Fechar clicando fora do modal
-window.onclick = (e) => {
-  if (e.target === modalAjuda) {
-    modalAjuda.classList.add('hidden');
+  .row {
+    flex-direction: column;
   }
 }
-</script>
+</style>
+</head>
+<body>
+
+<!-- Botão fixo no canto superior direito -->
+<button id="btnAjuda" class="btn-ajuda" aria-label="Ajuda">?</button>
+
+<!-- Modal da explicação -->
+<div id="modalAjuda" class="modal hidden">
+  <div class="modal-content">
+    <span class="fechar" id="fecharAjuda">&times;</span>
+    <h2>Como funciona o site</h2>
+    
+    <h3>1. Cadastro de resultados</h3>
+    <p>Digite um número de 0000 a 9999 e clique em "Adicionar". Os dados ficam salvos no seu navegador.</p>
+
+    <h3>2. Estatísticas por posição</h3>
+    <p>Para cada posição (Milhar, Centena, Dezena, Unidade) mostra frequência, porcentagem e atraso de cada dígito.</p>
+
+    <h3>3. Palpites inteligentes</h3>
+    <p>O site gera dois tipos de sugestão:</p>
+    <ul>
+      <li><strong>🔥 Quentes:</strong> combina os dígitos que mais saíram em cada posição.</li>
+      <li><strong>❄️ Frios:</strong> combina os dígitos mais atrasados (que estão "devendo") em cada posição.</li>
+    </ul>
+    <p>Quanto mais dados, melhores as sugestões.</p>
+
+    <h3>4. Análise dos bichos</h3>
+    <p>Frequência de cada grupo (bicho) baseado na dezena final.</p>
+
+    <h3>5. Milhar repetida</h3>
+    <p>Lista milhares que saíram mais de uma vez.</p>
+
+    <h3>6. Importar/Exportar</h3>
+    <p>Importe lista, exporte TXT, desfaça último, zere tudo.</p>
+
+    <p class="obs">Obs: Tudo fica salvo localmente. Limpar o cache apaga os dados.</p>
+  </div>
+</div>
+
 <div class="container">
 
 <div class="header">
   <h2>🎲 Estatística Jogo do Bicho</h2>
-  <p>Análise inteligente • 4 Dígitos • Painel moderno</p>
-  <div class="badge">v4.0 Premium UI</div>
+  <p>Análise + Palpites Quentes & Frios • Desenvolvido Por Wanderson Targino</p>
+  <div class="badge">v4.3 - Palpites Duplos</div>
+  <button onclick="window.open('https://wandersontargino185.github.io/Extra-o-do-bicho/', '_blank', 'noopener,noreferrer')" style="padding:10px 16px; background:#dc2626; color:white; border:none; border-radius:8px; font-weight:600; cursor:pointer; margin-top:8px;">
+  Extrair várias Milhar
+</button>
 </div>
 
 <div class="card">
 <details style="margin-top:16px;">
   <summary>🔍 Pesquisar Milhar</summary>
-  <input type="number" id="buscaMilhar" placeholder="Digite a milhar 0000-9999" inputmode="numeric">
+  <input type="number" id="buscaMilhar" placeholder="Digite a milhar 0000-9999" min="0" max="9999" inputmode="numeric">
   <button onclick="pesquisarMilhar()" class="btn-blue">Buscar</button>
   <div id="resultadoBusca"></div>
 </details>
-<input type="number" id="numero" placeholder="Resultado ex: 1234" min="0" max="9999"/>
+
+<input type="number" id="numero" placeholder="Resultado ex: 1234" min="0" max="9999" inputmode="numeric" />
 
 <button onclick="add()" class="btn-green">
   ➕ Adicionar Resultado
@@ -443,12 +467,8 @@ window.onclick = (e) => {
 
 <details style="margin-top:16px;">
   <summary>📥 Importar vários resultados</summary>
-
   <textarea id="txtImport" placeholder="Cole aqui:\n1234\n5678\n9012"></textarea>
-
-  <button onclick="importarTXT()" class="btn-blue">
-    📥 Importar Lista
-  </button>
+  <button onclick="importarTXT()" class="btn-blue">📥 Importar Lista</button>
 </details>
 
 <button onclick="exportar()" class="btn-gray">
@@ -456,18 +476,34 @@ window.onclick = (e) => {
 </button>
 
 <div id="resumo"></div>
+
+<!-- SEÇÃO DE PALPITES QUENTES -->
+<div id="palpiteQuentes" class="palpite-box hidden">
+  <h3>🔥 Palpites Quentes (dígitos que mais saem)</h3>
+  <div id="listaPalpitesQuentes"></div>
+</div>
+
+<!-- SEÇÃO DE PALPITES FRIOS -->
+<div id="palpiteFrios" class="palpite-box frios hidden">
+  <h3>❄️ Palpites Frios (dígitos atrasados / que "devem")</h3>
+  <div id="listaPalpitesFrios"></div>
+</div>
+
+<button id="btnGerarPalpites" class="btn-pink hidden">🔮 Atualizar Palpites</button>
+
 <div id="stats"></div>
 <div id="rodape"></div>
 
 </div>
 
 <div class="footer">
-  Desenvolvido com interface moderna ✨
+  💡 Palpites quentes = frequentes | Frios = atrasados (podem estar próximos de sair)
 </div>
 
 </div>
 
 <script>
+// ====================== DADOS GLOBAIS ======================
 let dados = JSON.parse(localStorage.getItem('bicho3') || '[]');
 
 const nomes = {
@@ -505,6 +541,410 @@ const bichos = {
   '97':'Vaca','98':'Vaca','99':'Vaca','00':'Vaca'
 };
 
+// ====================== FUNÇÕES AUXILIARES ======================
+function getAtraso(pos, alg, dadosArray) {
+  for (let i = dadosArray.length - 1; i >= 0; i--) {
+    let num = dadosArray[i].toString().padStart(4, '0');
+    if (num[pos] == alg) return dadosArray.length - 1 - i;
+  }
+  return dadosArray.length;
+}
+
+function calcularEstatisticas(dadosArray) {
+  const contagem = [{},{},{},{}];
+  const contagemBicho = {};
+  const contagemMilhar = {};
+  
+  for (let n of dadosArray) {
+    let num = n.toString().padStart(4, '0');
+    for (let i = 0; i < 4; i++) {
+      contagem[i][num[i]] = (contagem[i][num[i]] || 0) + 1;
+    }
+    let dezena = num.slice(2);
+    contagemBicho[bichos[dezena]] = (contagemBicho[bichos[dezena]] || 0) + 1;
+    contagemMilhar[num] = (contagemMilhar[num] || 0) + 1;
+  }
+  
+  const atrasos = [[],[],[],[]];
+  for (let pos = 0; pos < 4; pos++) {
+    for (let dig = 0; dig <= 9; dig++) {
+      atrasos[pos][dig] = getAtraso(pos, dig.toString(), dadosArray);
+    }
+  }
+  
+  return { contagem, contagemBicho, contagemMilhar, atrasos };
+}
+
+// ====================== GERAÇÃO DE PALPITES ======================
+function gerarPalpites() {
+  if (dados.length < 3) {
+    document.getElementById('listaPalpitesQuentes').innerHTML = '<p style="text-align:center; color:var(--muted)">⚠️ Adicione pelo menos 3 resultados para gerar palpites.</p>';
+    document.getElementById('listaPalpitesFrios').innerHTML = '';
+    document.getElementById('palpiteQuentes').classList.remove('hidden');
+    document.getElementById('palpiteFrios').classList.add('hidden');
+    document.getElementById('btnGerarPalpites').classList.add('hidden');
+    return;
+  }
+  
+  const { contagem, contagemBicho, atrasos } = calcularEstatisticas(dados);
+  const total = dados.length;
+  
+  // ---------- PALPITES QUENTES ----------
+  function topDigitosFrequentes(pos, quantos = 2) {
+    let arr = Object.entries(contagem[pos]).sort((a,b)=>b[1]-a[1]);
+    return arr.slice(0, quantos).map(e => e[0]);
+  }
+  
+  const topMilharQ = topDigitosFrequentes(0, 2);
+  const topCentenaQ = topDigitosFrequentes(1, 2);
+  const topDezenaQ = topDigitosFrequentes(2, 2);
+  const topUnidadeQ = topDigitosFrequentes(3, 2);
+  
+  let combinacoesQuentes = [];
+  for (let m of topMilharQ) {
+    for (let c of topCentenaQ) {
+      for (let d of topDezenaQ) {
+        for (let u of topUnidadeQ) {
+          combinacoesQuentes.push(`${m}${c}${d}${u}`);
+        }
+      }
+    }
+  }
+  combinacoesQuentes = [...new Set(combinacoesQuentes)].slice(0, 6);
+  
+  // ---------- PALPITES FRIOS ----------
+  function topDigitosAtrasados(pos, quantos = 2) {
+    // Ordena dígitos pelo maior atraso
+    let arr = [];
+    for (let dig = 0; dig <= 9; dig++) {
+      arr.push({ dig: dig.toString(), atraso: atrasos[pos][dig] });
+    }
+    arr.sort((a,b) => b.atraso - a.atraso);
+    return arr.slice(0, quantos).map(e => e.dig);
+  }
+  
+  const topMilharF = topDigitosAtrasados(0, 2);
+  const topCentenaF = topDigitosAtrasados(1, 2);
+  const topDezenaF = topDigitosAtrasados(2, 2);
+  const topUnidadeF = topDigitosAtrasados(3, 2);
+  
+  let combinacoesFrias = [];
+  for (let m of topMilharF) {
+    for (let c of topCentenaF) {
+      for (let d of topDezenaF) {
+        for (let u of topUnidadeF) {
+          combinacoesFrias.push(`${m}${c}${d}${u}`);
+        }
+      }
+    }
+  }
+  combinacoesFrias = [...new Set(combinacoesFrias)].slice(0, 6);
+  
+  // ---------- BICHO ATRASADO (extra para frios) ----------
+  let bichoAtrasado = null;
+  let maiorAtrasoBicho = -1;
+  for (let bicho in contagemBicho) {
+    let ultimoIndice = -1;
+    for (let i = dados.length-1; i >= 0; i--) {
+      let num = dados[i].toString().padStart(4,'0');
+      let dezena = num.slice(2);
+      if (bichos[dezena] === bicho) {
+        ultimoIndice = i;
+        break;
+      }
+    }
+    let atrasoBicho = (ultimoIndice === -1) ? dados.length : (dados.length - 1 - ultimoIndice);
+    if (atrasoBicho > maiorAtrasoBicho) {
+      maiorAtrasoBicho = atrasoBicho;
+      bichoAtrasado = bicho;
+    }
+  }
+  
+  let extraBicho = '';
+  if (bichoAtrasado && maiorAtrasoBicho >= 2) {
+    let dezenasDoBicho = [];
+    for (let dez in bichos) {
+      if (bichos[dez] === bichoAtrasado) dezenasDoBicho.push(dez);
+    }
+    if (dezenasDoBicho.length) {
+      let dezenaExtra = dezenasDoBicho[0];
+      let prefixo = (topMilharF[0] || '0') + (topCentenaF[0] || '0');
+      extraBicho = `${prefixo}${dezenaExtra}`;
+      if (!combinacoesFrias.includes(extraBicho)) {
+        combinacoesFrias.push(extraBicho);
+      }
+    }
+  }
+  
+  // ---------- RENDERIZA QUENTES ----------
+  let htmlQuentes = '';
+  for (let milhar of combinacoesQuentes) {
+    let bichoMilhar = bichos[milhar.slice(2)];
+    htmlQuentes += `
+      <div class="palpite-item">
+        <span class="palpite-numero">${milhar}</span>
+        <span>🐾 ${bichoMilhar}</span>
+        <span class="palpite-just">💡 dígitos frequentes</span>
+      </div>
+    `;
+  }
+  if (htmlQuentes === '') htmlQuentes = '<p style="text-align:center; color:var(--muted)">Sem dados suficientes.</p>';
+  document.getElementById('listaPalpitesQuentes').innerHTML = htmlQuentes;
+  document.getElementById('palpiteQuentes').classList.remove('hidden');
+  
+  // ---------- RENDERIZA FRIOS ----------
+  let htmlFrios = '';
+  for (let milhar of combinacoesFrias) {
+    let bichoMilhar = bichos[milhar.slice(2)];
+    let motivo = (milhar === extraBicho) ? 'bicho atrasado' : 'dígitos atrasados';
+    htmlFrios += `
+      <div class="palpite-item">
+        <span class="palpite-numero">${milhar}</span>
+        <span>🐾 ${bichoMilhar}</span>
+        <span class="palpite-just">❄️ ${motivo}</span>
+      </div>
+    `;
+  }
+  if (bichoAtrasado && maiorAtrasoBicho >= 2) {
+    htmlFrios += `<div style="font-size:12px; text-align:center; margin-top:8px;">🐾 Bicho mais atrasado: <b>${bichoAtrasado}</b> (${maiorAtrasoBicho} sorteios sem aparecer)</div>`;
+  }
+  if (htmlFrios === '') htmlFrios = '<p style="text-align:center; color:var(--muted)">Sem dados suficientes.</p>';
+  document.getElementById('listaPalpitesFrios').innerHTML = htmlFrios;
+  document.getElementById('palpiteFrios').classList.remove('hidden');
+  
+  document.getElementById('btnGerarPalpites').classList.remove('hidden');
+}
+
+// ====================== RENDERIZAÇÃO PRINCIPAL ======================
+function atualizar() {
+  const btnDesfazer = document.getElementById('btnDesfazer');
+  if (btnDesfazer) btnDesfazer.classList.toggle('hidden', dados.length === 0);
+  
+  if (dados.length === 0) {
+    document.getElementById('resumo').innerHTML = `<div class="resumo"><b>📊 Total:</b> 0 resultados<br>Nenhum dado cadastrado.</div>`;
+    document.getElementById('stats').innerHTML = '';
+    document.getElementById('rodape').innerHTML = '';
+    document.getElementById('palpiteQuentes').classList.add('hidden');
+    document.getElementById('palpiteFrios').classList.add('hidden');
+    document.getElementById('btnGerarPalpites').classList.add('hidden');
+    localStorage.setItem('bicho3', JSON.stringify(dados));
+    return;
+  }
+  
+  const { contagem, contagemBicho, contagemMilhar, atrasos } = calcularEstatisticas(dados);
+  const total = dados.length;
+  
+  // ---- Resumo ----
+  let htmlResumo = `<div class="resumo"><b>📊 Total:</b> ${total} resultados<br>`;
+  const ultimo = dados[dados.length-1].toString().padStart(4,'0');
+  htmlResumo += `<b>🎯 Último:</b> ${ultimo} - ${bichos[ultimo.slice(2)]}<br>`;
+  
+  ['Unidade','Dezena'].forEach((nome, idx) => {
+    const pos = 3 - idx;
+    const arr = Object.entries(contagem[pos]).sort((a,b)=>b[1]-a[1]);
+    if (arr.length) {
+      const top3 = arr.slice(0,3).map(e=>e[0]).join(', ');
+      const low3 = arr.slice(-3).map(e=>e[0]).join(', ');
+      htmlResumo += `<b>🔥 ${nome}:</b> Quentes: ${top3} | ❄️ Frios: ${low3}<br>`;
+    }
+  });
+  htmlResumo += `</div>`;
+  document.getElementById('resumo').innerHTML = htmlResumo;
+  
+  // ---- Gerar palpites ----
+  gerarPalpites();
+  
+  // ---- Tabelas por posição (CORRIGIDAS) ----
+  let htmlStats = '';
+  for (let pos = 0; pos < 4; pos++) {
+    htmlStats += `<h3>${nomes[pos]}</h3>
+    <table>
+      <tr><th>Algarismo</th><th>Qtd</th><th>%</th><th>Atraso</th></tr>`;
+    let entries = Object.entries(contagem[pos]);
+    let max = entries.length ? Math.max(...entries.map(e=>e[1])) : 0;
+    let min = entries.length ? Math.min(...entries.map(e=>e[1])) : 0;
+    const hasZero = entries.some(([_, q]) => q === 0);
+    if (!hasZero && total > 0) min = 0;
+    
+    for (let dig = 0; dig <= 9; dig++) {
+      const q = contagem[pos][dig] || 0;
+      const pct = (q / total * 100).toFixed(1);
+      const atrasoVal = atrasos[pos][dig];
+      let cls = '';
+      if (q === max && q > 0) cls = 'top';
+      else if (q === min && (min === 0 || (q > 0 && q === min))) cls = 'low';
+      htmlStats += `<tr class="${cls}"><td>${dig}</td><td>${q}</td><td>${pct}%</td><td>${atrasoVal}</td></tr>`;
+    }
+    htmlStats += `</table>`;
+  }
+  
+  // ---- Bichos (CORRIGIDO) ----
+  htmlStats += `<h3>🐾 Grupos / Bichos</h3>
+  <table>
+    <tr><th>Bicho</th><th>Qtd</th><th>%</th></tr>`;
+  const arrBicho = Object.entries(contagemBicho).sort((a,b)=>b[1]-a[1]);
+  for (let [bicho, q] of arrBicho) {
+    const pct = (q / total * 100).toFixed(1);
+    htmlStats += `<tr><td>${bicho}</td><td>${q}</td><td>${pct}%</td></tr>`;
+  }
+  htmlStats += `</table>`;
+  document.getElementById('stats').innerHTML = htmlStats;
+  
+  // ---- Milhar repetida (CORRIGIDO) ----
+  const arrMilhar = Object.entries(contagemMilhar).filter(e => e[1] > 1).sort((a,b)=>b[1]-a[1]);
+  let htmlRodape = '';
+  if (arrMilhar.length) {
+    htmlRodape = `<details><summary>🔁 Milhar Completa Repetida - ${arrMilhar.length} únicas</summary>
+      <table>
+        <tr><th>Milhar</th><th>Bicho</th><th>Vezes</th></tr>`;
+    for (let [milhar, q] of arrMilhar) {
+      htmlRodape += `<tr class="top"><td>${milhar}</td><td>${bichos[milhar.slice(2)]}</td><td>${q}</td></tr>`;
+    }
+    htmlRodape += `</table></details>`;
+  }
+  document.getElementById('rodape').innerHTML = htmlRodape;
+  
+  localStorage.setItem('bicho3', JSON.stringify(dados));
+}
+
+// ====================== CRUD ======================
+function add() {
+  let raw = document.getElementById('numero').value.trim();
+  if (raw === '') return;
+  let n = parseInt(raw, 10);
+  if (isNaN(n) || n < 0 || n > 9999) {
+    alert('Digite um número entre 0000 e 9999');
+    return;
+  }
+  dados.push(n);
+  document.getElementById('numero').value = '';
+  atualizar();
+  document.getElementById('numero').focus();
+}
+
+function desfazer() {
+  if (dados.length === 0) return;
+  const removido = dados.pop();
+  atualizar();
+  alert(`Removido: ${removido.toString().padStart(4,'0')}`);
+}
+
+function importarTXT() {
+  const txt = document.getElementById('txtImport').value;
+  const linhas = txt.split(/\r?\n/);
+  let adicionados = 0;
+  for (let linha of linhas) {
+    let n = parseInt(linha.trim(), 10);
+    if (!isNaN(n) && n >= 0 && n <= 9999) {
+      dados.push(n);
+      adicionados++;
+    }
+  }
+  if (adicionados) {
+    alert(`${adicionados} resultados importados!`);
+    document.getElementById('txtImport').value = '';
+    atualizar();
+  } else {
+    alert('Nenhum número válido encontrado.');
+  }
+}
+
+function limpar() {
+  if (confirm('⚠️ Apagar TODOS os resultados? Essa ação é irreversível.')) {
+    dados = [];
+    atualizar();
+  }
+}
+
+function exportar() {
+  const txt = dados.join('\n');
+  const blob = new Blob([txt], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'resultados_bicho.txt';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function salvarArquivo() {
+  const data = new Date().toISOString().slice(0,10);
+  const txt = dados.join('\n');
+  const blob = new Blob([txt], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `bicho_${data}_${dados.length}resultados.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function abrirArquivo(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const txt = e.target.result;
+    const linhas = txt.split(/\r?\n/);
+    const novos = [];
+    for (let linha of linhas) {
+      let n = parseInt(linha.trim(), 10);
+      if (!isNaN(n) && n >= 0 && n <= 9999) novos.push(n);
+    }
+    if (novos.length) {
+      const msg = `Arquivo contém ${novos.length} números.\nExemplo: ${novos[0].toString().padStart(4,'0')} ... ${novos[novos.length-1].toString().padStart(4,'0')}\nSubstituir os dados atuais?`;
+      if (confirm(msg)) {
+        dados = novos;
+        atualizar();
+      }
+    } else {
+      alert('Nenhum número válido encontrado no arquivo.');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+function pesquisarMilhar() {
+  let busca = document.getElementById('buscaMilhar').value;
+  if (busca === '') return;
+  busca = busca.toString().padStart(4, '0');
+  let qtd = 0;
+  let ultPos = -1;
+  dados.forEach((n, i) => {
+    let s = n.toString().padStart(4, '0');
+    if (s === busca) {
+      qtd++;
+      ultPos = i;
+    }
+  });
+  const resultadoDiv = document.getElementById('resultadoBusca');
+  if (qtd > 0) {
+    const atraso = dados.length - 1 - ultPos;
+    resultadoDiv.innerHTML = `
+      <div class="resumo" style="margin-top:10px;">
+        <div><b>Milhar:</b> ${busca}</div>
+        <div><b>Apareceu:</b> ${qtd}x</div>
+        <div><b>Atraso:</b> ${atraso} sorteios</div>
+        <div><b>Bicho:</b> ${bichos[busca.slice(2)]}</div>
+      </div>
+    `;
+  } else {
+    resultadoDiv.innerHTML = `<p style="margin-top:10px; color: var(--muted);">Milhar ${busca} não foi encontrada nos dados salvos.</p>`;
+  }
+}
+
+// ====================== EVENTOS E MODAL ======================
+const btnAjuda = document.getElementById('btnAjuda');
+const modalAjuda = document.getElementById('modalAjuda');
+const fecharAjuda = document.getElementById('fecharAjuda');
+
+btnAjuda.onclick = () => modalAjuda.classList.remove('hidden');
+fecharAjuda.onclick = () => modalAjuda.classList.add('hidden');
+window.onclick = (e) => {
+  if (e.target === modalAjuda) modalAjuda.classList.add('hidden');
+};
+
 document.getElementById('numero').addEventListener('keypress', function(e) {
   if (e.key === 'Enter') {
     e.preventDefault();
@@ -512,385 +952,14 @@ document.getElementById('numero').addEventListener('keypress', function(e) {
   }
 });
 
-function getAtraso(pos, alg) {
-  for(let i = dados.length - 1; i >= 0; i--) {
-    let num = dados[i].toString().padStart(4,'0');
-    if(num[pos] == alg) return dados.length - 1 - i;
-  }
-  return dados.length;
-}
-
-function atualizar() {
-
-  document.getElementById('btnDesfazer').classList.toggle('hidden', dados.length === 0);
-
-  let contagem = [{},{},{},{}];
-  let contagemBicho = {};
-  let contagemMilhar = {};
-
-  dados.forEach(n => {
-    let num = n.toString().padStart(4,'0');
-
-    for(let i=0;i<4;i++) {
-      contagem[i][num[i]] = (contagem[i][num[i]] || 0) + 1;
-    }
-
-    let dezena = num.slice(2);
-
-    contagemBicho[bichos[dezena]] = (contagemBicho[bichos[dezena]] || 0) + 1;
-
-    contagemMilhar[num] = (contagemMilhar[num] || 0) + 1;
-  });
-
-  let htmlResumo = `
-  <div class="resumo">
-    <b>📊 Total:</b> ${dados.length} resultados<br>
-  `;
-
-  if(dados.length > 0) {
-    let ultimo = dados[dados.length-1].toString().padStart(4,'0');
-
-    htmlResumo += `
-      <b>🎯 Último:</b> ${ultimo} - ${bichos[ultimo.slice(2)]}<br>
-    `;
-
-    ['Unidade','Dezena'].forEach((nome, idx) => {
-      let pos = 3 - idx;
-
-      let arr = Object.entries(contagem[pos]).sort((a,b)=>b[1]-a[1]);
-
-      if(arr.length) {
-        let top3 = arr.slice(0,3).map(e=>e[0]).join(', ');
-        let low3 = arr.slice(-3).map(e=>e[0]).join(', ');
-
-        htmlResumo += `
-          <b>🔥 ${nome}:</b>
-          Quentes: ${top3} |
-          ❄️ Frios: ${low3}<br>
-        `;
-      }
-    });
-  }
-
-  htmlResumo += `</div>`;
-
-  document.getElementById('resumo').innerHTML = htmlResumo;
-
-  let html = '';
-
-  for(let pos=0; pos<4; pos++) {
-
-    html += `
-      <h3>${nomes[pos]}</h3>
-      <table>
-        <tr>
-          <th>Algarismo</th>
-          <th>Qtd</th>
-          <th>%</th>
-          <th>Atraso</th>
-        </tr>
-    `;
-
-    let arr = Object.entries(contagem[pos]).sort((a,b)=>b[1]-a[1]);
-
-    let max = arr[0]?.[1] || 0;
-    let min = arr[arr.length-1]?.[1] || 0;
-
-    for(let i=0;i<=9;i++) {
-
-      let q = contagem[pos][i] || 0;
-
-      let pct = dados.length
-        ? (q / dados.length * 100).toFixed(1)
-        : 0;
-
-      let atraso = getAtraso(pos, i);
-
-      let cls = q === max && q > 0
-        ? 'top'
-        : q === min && q > 0
-        ? 'low'
-        : '';
-
-      html += `
-        <tr class="${cls}">
-          <td>${i}</td>
-          <td>${q}</td>
-          <td>${pct}%</td>
-          <td>${atraso}</td>
-        </tr>
-      `;
-    }
-
-    html += `</table>`;
-  }
-
-  html += `
-    <h3>🐾 Grupos / Bichos</h3>
-
-    <table>
-      <tr>
-        <th>Bicho</th>
-        <th>Qtd</th>
-        <th>%</th>
-      </tr>
-  `;
-
-  let arrBicho = Object.entries(contagemBicho).sort((a,b)=>b[1]-a[1]);
-
-  arrBicho.forEach(([bicho, q]) => {
-    let pct = (q / dados.length * 100).toFixed(1);
-
-    html += `
-      <tr>
-        <td>${bicho}</td>
-        <td>${q}</td>
-        <td>${pct}%</td>
-      </tr>
-    `;
-  });
-
-  html += `</table>`;
-
-  document.getElementById('stats').innerHTML = html;
-
-  let htmlRodape = '';
-
-  let arrMilhar = Object.entries(contagemMilhar)
-    .filter(e => e[1] > 1)
-    .sort((a,b)=>b[1]-a[1]);
-
-  if(arrMilhar.length > 0) {
-
-    htmlRodape += `
-      <details>
-        <summary>
-          🔁 Milhar Completa Repetida - ${arrMilhar.length} únicas
-        </summary>
-
-        <table>
-          <tr>
-            <th>Milhar</th>
-            <th>Bicho</th>
-            <th>Vezes</th>
-          </tr>
-    `;
-
-    arrMilhar.forEach(([milhar, q]) => {
-      htmlRodape += `
-        <tr class="top">
-          <td>${milhar}</td>
-          <td>${bichos[milhar.slice(2)]}</td>
-          <td>${q}</td>
-        </tr>
-      `;
-    });
-
-    htmlRodape += `
-        </table>
-      </details>
-    `;
-  }
-
-  document.getElementById('rodape').innerHTML = htmlRodape;
-
-  localStorage.setItem('bicho3', JSON.stringify(dados));
-}
-
-function add() {
-  let n = document.getElementById('numero').value;
-
-  if(n === '') return;
-
-  n = parseInt(n);
-
-  if(n >= 0 && n <= 9999) {
-    dados.push(n);
-
-    document.getElementById('numero').value = '';
-
-    atualizar();
-
-    document.getElementById('numero').focus();
-  }
-  else {
-    alert('Digite entre 0000 e 9999');
-  }
-}
-
-function desfazer() {
-  if(dados.length > 0) {
-
-    let removido = dados.pop();
-
-    atualizar();
-
-    alert(`Removido: ${removido.toString().padStart(4,'0')}`);
-  }
-}
-
-function importarTXT() {
-
-  let txt = document.getElementById('txtImport').value;
-
-  let linhas = txt.split('\n');
-
-  let adicionados = 0;
-
-  linhas.forEach(linha => {
-
-    let n = parseInt(linha.trim());
-
-    if(!isNaN(n) && n >= 0 && n <= 9999) {
-      dados.push(n);
-      adicionados++;
-    }
-  });
-
-  if(adicionados > 0) {
-
-    alert(`${adicionados} resultados importados!`);
-
-    document.getElementById('txtImport').value = '';
-
-    atualizar();
-  }
-  else {
-    alert('Nenhum número válido encontrado.');
-  }
-}
-
-function limpar() {
-  if(confirm('Apagar todos os resultados?')) {
-    dados = [];
-    atualizar();
-  }
-}
-
-function exportar() {
-
-  let txt = dados.join('\n');
-
-  let blob = new Blob([txt], {
-    type: 'text/plain'
-  });
-
-  let url = URL.createObjectURL(blob);
-
-  let a = document.createElement('a');
-
-  a.href = url;
-  a.download = 'resultados_bicho.txt';
-
-  a.click();
-}
-
-function salvarArquivo() {
-
-  let data = new Date().toISOString().slice(0,10);
-
-  let txt = dados.join('\n');
-
-  let blob = new Blob([txt], {
-    type: 'text/plain'
-  });
-
-  let url = URL.createObjectURL(blob);
-
-  let a = document.createElement('a');
-
-  a.href = url;
-
-  a.download = `bicho_${data}_${dados.length}resultados.txt`;
-
-  a.click();
-}
-
-function abrirArquivo(event) {
-
-  let file = event.target.files[0];
-
-  if (!file) return;
-
-  let reader = new FileReader();
-
-  reader.onload = function(e) {
-
-    let txt = e.target.result;
-
-    let linhas = txt.split('\n');
-
-    let novos = [];
-
-    linhas.forEach(linha => {
-
-      let n = parseInt(linha.trim());
-
-      if(!isNaN(n) && n >= 0 && n <= 9999) {
-        novos.push(n);
-      }
-    });
-
-    if(
-      novos.length > 0 &&
-      confirm(`Carregar ${novos.length} resultados do arquivo?`)
-    ) {
-      dados = novos;
-      atualizar();
-    }
-  };
-
-  reader.readAsText(file);
-
-  event.target.value = '';
-}
-function pesquisarMilhar() {
-  let busca = document.getElementById('buscaMilhar').value;
-  if(busca === '') return;
-  
-  busca = busca.toString().padStart(4,'0');
-  let qtd = 0;
-  let ultPos = -1;
-
-  dados.forEach((n, i) => {
-    let s = n.toString().padStart(4,'0');
-    if(s === busca) {
-      qtd++;
-      ultPos = i;
-    }
-  });
-
-  let html = '';
-  if(qtd > 0) {
-    let atraso = dados.length - 1 - ultPos;
-    html = `
-      <div class="resumo" style="margin-top:10px;">
-        <div class="item">
-          <h4>Milhar</h4>
-          <p>${busca}</p>
-        </div>
-        <div class="item">
-          <h4>Apareceu</h4>
-          <p>${qtd}x</p>
-        </div>
-        <div class="item">
-          <h4>Atraso</h4>
-          <p>${atraso}</p>
-        </div>
-        <div class="item">
-          <h4>Bicho</h4>
-          <p>${bichos[busca.slice(2)]}</p>
-        </div>
-      </div>
-    `;
-  } else {
-    html = `<p style="margin-top:10px; color: var(--muted);">Milhar ${busca} não foi encontrada nos dados salvos.</p>`;
-  }
-
-  document.getElementById('resultadoBusca').innerHTML = html;
-}
+// Botão para gerar palpites manualmente
+document.getElementById('btnGerarPalpites').addEventListener('click', () => {
+  if (dados.length > 0) gerarPalpites();
+  else alert('Adicione alguns resultados primeiro.');
+});
+
+// ====================== INICIALIZAÇÃO ======================
 atualizar();
 </script>
-
 </body>
 </html>
