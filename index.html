@@ -715,6 +715,33 @@ function gerarPalpites() {
   document.getElementById('btnGerarPalpites').classList.remove('hidden');
 }
 
+// ====================== PESQUISAR MILHAR ======================
+function pesquisarMilhar() {
+  const busca = document.getElementById('buscaMilhar').value.padStart(4, '0');
+  const divResultado = document.getElementById('resultadoBusca');
+  
+  if (!/^\d{4}$/.test(busca)) {
+    divResultado.innerHTML = '<p style="color:var(--red)">Digite um número entre 0000 e 9999.</p>';
+    return;
+  }
+  
+  // contar ocorrências e posições
+  const ocorrencias = [];
+  for (let i = 0; i < dados.length; i++) {
+    let num = dados[i].toString().padStart(4, '0');
+    if (num === busca) {
+      ocorrencias.push(i + 1); // posição (começando do 1)
+    }
+  }
+  
+  const bicho = bichos[busca.slice(2)];
+  if (ocorrencias.length === 0) {
+    divResultado.innerHTML = `<p>A milhar <b>${busca}</b> (${bicho}) nunca saiu.</p>`;
+  } else {
+    divResultado.innerHTML = `<p>A milhar <b>${busca}</b> (${bicho}) saiu ${ocorrencias.length} vez(es):<br>Posições: ${ocorrencias.join(', ')}</p>`;
+  }
+}
+
 // ====================== RENDERIZAÇÃO PRINCIPAL ======================
 function atualizar() {
   const btnDesfazer = document.getElementById('btnDesfazer');
@@ -754,94 +781,121 @@ function atualizar() {
   // ---- Gerar palpites ----
   gerarPalpites();
   
-  // ---- Tabelas por posição (CORRIGIDAS) ----
+  // ---- Tabelas por posição (CORRIGIDAS - inclui todos os dígitos 0-9) ----
   let htmlStats = '';
   for (let pos = 0; pos < 4; pos++) {
     htmlStats += `<h3>${nomes[pos]}</h3>
     <table>
       <tr><th>Algarismo</th><th>Qtd</th><th>%</th><th>Atraso</th></tr>`;
+
+    // Pega os dígitos que aparecem para destacar os extremos
     let entries = Object.entries(contagem[pos]);
-    let max = entries.length ? Math.max(...entries.map(e=>e[1])) : 0;
-    let min = entries.length ? Math.min(...entries.map(e=>e[1])) : 0;
-    const hasZero = entries.some(([_, q]) => q === 0);
-    if (!hasZero && total > 0) min = 0;
-    
+    entries.sort((a, b) => b[1] - a[1]);
+    const maxQtd = entries.length ? entries[0][1] : 0;
+    const minQtd = entries.length ? entries[entries.length - 1][1] : 0;
+
+    // Agora percorremos TODOS os dígitos 0-9
     for (let dig = 0; dig <= 9; dig++) {
-      const q = contagem[pos][dig] || 0;
-      const pct = (q / total * 100).toFixed(1);
-      const atrasoVal = atrasos[pos][dig];
-      let cls = '';
-      if (q === max && q > 0) cls = 'top';
-      else if (q === min && (min === 0 || (q > 0 && q === min))) cls = 'low';
-      htmlStats += `<tr class="${cls}"><td>${dig}</td><td>${q}</td><td>${pct}%</td><td>${atrasoVal}</td></tr>`;
+      const d = dig.toString();
+      const qtd = contagem[pos][d] || 0;
+      const pct = total > 0 ? ((qtd / total) * 100).toFixed(1) : '0.0';
+      const atr = atrasos[pos][dig]; // já calculado para todos
+
+      // Classes para destacar o maior e o menor (opcional)
+      let classe = '';
+      if (qtd === maxQtd && qtd > 0) classe = 'top';
+      if (qtd === minQtd && qtd > 0) classe = 'low';
+
+      htmlStats += `<tr class="${classe}">
+        <td>${d}</td>
+        <td>${qtd}</td>
+        <td>${pct}%</td>
+        <td>${atr}</td>
+      </tr>`;
     }
     htmlStats += `</table>`;
   }
   
-  // ---- Bichos (CORRIGIDO) ----
-  htmlStats += `<h3>🐾 Grupos / Bichos</h3>
-  <table>
-    <tr><th>Bicho</th><th>Qtd</th><th>%</th></tr>`;
-  const arrBicho = Object.entries(contagemBicho).sort((a,b)=>b[1]-a[1]);
-  for (let [bicho, q] of arrBicho) {
-    const pct = (q / total * 100).toFixed(1);
-    htmlStats += `<tr><td>${bicho}</td><td>${q}</td><td>${pct}%</td></tr>`;
+  // ---- Tabela de bichos ----
+  htmlStats += `<h3>🐾 Frequência dos Bichos</h3><table><tr><th>Bicho</th><th>Qtd</th><th>%</th></tr>`;
+  let bichoArray = Object.entries(contagemBicho).sort((a,b)=>b[1]-a[1]);
+  for (let [bicho, qtd] of bichoArray) {
+    let pct = ((qtd/total)*100).toFixed(1);
+    htmlStats += `<tr><td>${bicho}</td><td>${qtd}</td><td>${pct}%</td></tr>`;
   }
   htmlStats += `</table>`;
+  
+  // ---- Milhares repetidas ----
+  let repetidas = Object.entries(contagemMilhar).filter(([_,v])=>v>1).sort((a,b)=>b[1]-a[1]);
+  if (repetidas.length) {
+    htmlStats += `<h3>🔁 Milhares Repetidas</h3><table><tr><th>Milhar</th><th>Vezes</th></tr>`;
+    for (let [mil, vezes] of repetidas) {
+      htmlStats += `<tr><td>${mil}</td><td>${vezes}</td></tr>`;
+    }
+    htmlStats += `</table>`;
+  }
+  
   document.getElementById('stats').innerHTML = htmlStats;
   
-  // ---- Milhar repetida (CORRIGIDO) ----
-  const arrMilhar = Object.entries(contagemMilhar).filter(e => e[1] > 1).sort((a,b)=>b[1]-a[1]);
-  let htmlRodape = '';
-  if (arrMilhar.length) {
-    htmlRodape = `<details><summary>🔁 Milhar Completa Repetida - ${arrMilhar.length} únicas</summary>
-      <table>
-        <tr><th>Milhar</th><th>Bicho</th><th>Vezes</th></tr>`;
-    for (let [milhar, q] of arrMilhar) {
-      htmlRodape += `<tr class="top"><td>${milhar}</td><td>${bichos[milhar.slice(2)]}</td><td>${q}</td></tr>`;
-    }
-    htmlRodape += `</table></details>`;
-  }
-  document.getElementById('rodape').innerHTML = htmlRodape;
+  // ---- Rodapé ----
+  document.getElementById('rodape').innerHTML = `<p style="text-align:center; color:var(--muted); font-size:12px;">Última atualização: ${new Date().toLocaleString()}</p>`;
   
+  // Salva no localStorage
   localStorage.setItem('bicho3', JSON.stringify(dados));
 }
 
 // ====================== CRUD ======================
 function add() {
-  let raw = document.getElementById('numero').value.trim();
-  if (raw === '') return;
-  let n = parseInt(raw, 10);
-  if (isNaN(n) || n < 0 || n > 9999) {
-    alert('Digite um número entre 0000 e 9999');
+  const input = document.getElementById('numero');
+  let val = input.value.trim();
+  if (!/^\d{1,4}$/.test(val)) {
+    alert('Digite um número entre 0 e 9999.');
     return;
   }
-  dados.push(n);
-  document.getElementById('numero').value = '';
+  dados.push(parseInt(val, 10));
+  input.value = '';
   atualizar();
-  document.getElementById('numero').focus();
 }
 
 function desfazer() {
   if (dados.length === 0) return;
-  const removido = dados.pop();
+  dados.pop();
   atualizar();
-  alert(`Removido: ${removido.toString().padStart(4,'0')}`);
+}
+
+function limpar() {
+  if (confirm('Tem certeza que deseja apagar todos os dados?')) {
+    dados = [];
+    atualizar();
+  }
+}
+
+function exportar() {
+  if (dados.length === 0) {
+    alert('Nenhum dado para exportar.');
+    return;
+  }
+  let txt = dados.join('\n');
+  let blob = new Blob([txt], {type: 'text/plain'});
+  let a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'resultados_jb.txt';
+  a.click();
 }
 
 function importarTXT() {
-  const txt = document.getElementById('txtImport').value;
-  const linhas = txt.split(/\r?\n/);
+  let raw = document.getElementById('txtImport').value.trim();
+  if (!raw) return;
+  let nums = raw.split(/[\n,;]+/);
   let adicionados = 0;
-  for (let linha of linhas) {
-    let n = parseInt(linha.trim(), 10);
-    if (!isNaN(n) && n >= 0 && n <= 9999) {
-      dados.push(n);
+  for (let n of nums) {
+    let limpo = n.trim();
+    if (/^\d{1,4}$/.test(limpo)) {
+      dados.push(parseInt(limpo, 10));
       adicionados++;
     }
   }
-  if (adicionados) {
-    alert(`${adicionados} resultados importados!`);
+  if (adicionados > 0) {
     document.getElementById('txtImport').value = '';
     atualizar();
   } else {
@@ -849,117 +903,61 @@ function importarTXT() {
   }
 }
 
-function limpar() {
-  if (confirm('⚠️ Apagar TODOS os resultados? Essa ação é irreversível.')) {
-    dados = [];
-    atualizar();
-  }
-}
-
-function exportar() {
-  const txt = dados.join('\n');
-  const blob = new Blob([txt], { type: 'text/plain' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'resultados_bicho.txt';
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
 function salvarArquivo() {
-  const data = new Date().toISOString().slice(0,10);
-  const txt = dados.join('\n');
-  const blob = new Blob([txt], { type: 'text/plain' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `bicho_${data}_${dados.length}resultados.txt`;
+  // Salva também como JSON para preservar
+  let json = JSON.stringify(dados);
+  let blob = new Blob([json], {type: 'application/json'});
+  let a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'backup_jb.json';
   a.click();
-  URL.revokeObjectURL(url);
 }
 
 function abrirArquivo(event) {
-  const file = event.target.files[0];
+  let file = event.target.files[0];
   if (!file) return;
-  const reader = new FileReader();
+  let reader = new FileReader();
   reader.onload = function(e) {
-    const txt = e.target.result;
-    const linhas = txt.split(/\r?\n/);
-    const novos = [];
-    for (let linha of linhas) {
-      let n = parseInt(linha.trim(), 10);
-      if (!isNaN(n) && n >= 0 && n <= 9999) novos.push(n);
-    }
-    if (novos.length) {
-      const msg = `Arquivo contém ${novos.length} números.\nExemplo: ${novos[0].toString().padStart(4,'0')} ... ${novos[novos.length-1].toString().padStart(4,'0')}\nSubstituir os dados atuais?`;
-      if (confirm(msg)) {
-        dados = novos;
+    let conteudo = e.target.result;
+    // Tenta JSON primeiro
+    try {
+      let arr = JSON.parse(conteudo);
+      if (Array.isArray(arr) && arr.every(v => typeof v === 'number')) {
+        dados = arr;
         atualizar();
+        return;
       }
+    } catch (_) {}
+    // Se não for JSON, tenta como TXT de números
+    let nums = conteudo.split(/[\n,;]+/).filter(n => /^\d{1,4}$/.test(n.trim()));
+    if (nums.length > 0) {
+      dados = nums.map(Number);
+      atualizar();
     } else {
-      alert('Nenhum número válido encontrado no arquivo.');
+      alert('Arquivo inválido.');
     }
   };
   reader.readAsText(file);
-  event.target.value = '';
 }
 
-function pesquisarMilhar() {
-  let busca = document.getElementById('buscaMilhar').value;
-  if (busca === '') return;
-  busca = busca.toString().padStart(4, '0');
-  let qtd = 0;
-  let ultPos = -1;
-  dados.forEach((n, i) => {
-    let s = n.toString().padStart(4, '0');
-    if (s === busca) {
-      qtd++;
-      ultPos = i;
-    }
-  });
-  const resultadoDiv = document.getElementById('resultadoBusca');
-  if (qtd > 0) {
-    const atraso = dados.length - 1 - ultPos;
-    resultadoDiv.innerHTML = `
-      <div class="resumo" style="margin-top:10px;">
-        <div><b>Milhar:</b> ${busca}</div>
-        <div><b>Apareceu:</b> ${qtd}x</div>
-        <div><b>Atraso:</b> ${atraso} sorteios</div>
-        <div><b>Bicho:</b> ${bichos[busca.slice(2)]}</div>
-      </div>
-    `;
-  } else {
-    resultadoDiv.innerHTML = `<p style="margin-top:10px; color: var(--muted);">Milhar ${busca} não foi encontrada nos dados salvos.</p>`;
-  }
-}
-
-// ====================== EVENTOS E MODAL ======================
-const btnAjuda = document.getElementById('btnAjuda');
-const modalAjuda = document.getElementById('modalAjuda');
-const fecharAjuda = document.getElementById('fecharAjuda');
-
-btnAjuda.onclick = () => modalAjuda.classList.remove('hidden');
-fecharAjuda.onclick = () => modalAjuda.classList.add('hidden');
-window.onclick = (e) => {
-  if (e.target === modalAjuda) modalAjuda.classList.add('hidden');
-};
-
-document.getElementById('numero').addEventListener('keypress', function(e) {
-  if (e.key === 'Enter') {
-    e.preventDefault();
-    add();
-  }
+// ====================== EVENTOS MODAL ======================
+document.getElementById('btnAjuda').addEventListener('click', () => {
+  document.getElementById('modalAjuda').classList.remove('hidden');
+});
+document.getElementById('fecharAjuda').addEventListener('click', () => {
+  document.getElementById('modalAjuda').classList.add('hidden');
+});
+window.addEventListener('click', (e) => {
+  const modal = document.getElementById('modalAjuda');
+  if (e.target === modal) modal.classList.add('hidden');
 });
 
-// Botão para gerar palpites manualmente
-document.getElementById('btnGerarPalpites').addEventListener('click', () => {
-  if (dados.length > 0) gerarPalpites();
-  else alert('Adicione alguns resultados primeiro.');
-});
+// Botão de gerar palpites (caso queira forçar atualização)
+document.getElementById('btnGerarPalpites').addEventListener('click', atualizar);
 
-// ====================== INICIALIZAÇÃO ======================
+// Inicializa
 atualizar();
 </script>
+
 </body>
 </html>
